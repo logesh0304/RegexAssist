@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+ The MIT License
+
+ Copyright 2020 Logesh0304.
+
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the "Software"), to deal
+ in the Software without restriction, including without limitation the rights
+ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ copies of the Software, and to permit persons to whom the Software is
+ furnished to do so, subject to the following conditions:
+
+ The above copyright notice and this permission notice shall be included in
+ all copies or substantial portions of the Software.
+
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ THE SOFTWARE.
+-->
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckMenuItem?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.MenuButton?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.SeparatorMenuItem?>
+<?import javafx.scene.control.SplitMenuButton?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToolBar?>
+<?import javafx.scene.control.Tooltip?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Text?>
+
+<BorderPane prefHeight="463.0" prefWidth="773.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.codefh.regexassist.RegexAssistController">
+   <center>
+      <SplitPane dividerPositions="0.7211413748378729" prefHeight="160.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+         <items>
+            <SplitPane dividerPositions="0.57981220657277" orientation="VERTICAL" prefHeight="383.0" prefWidth="335.0">
+               <items>
+                  <VBox fx:id="input_box" prefHeight="200.0" prefWidth="100.0" spacing="5.0">
+                     <children>
+                        <HBox alignment="CENTER_LEFT" prefHeight="8.0" prefWidth="533.0">
+                           <children>
+                              <Label text="Regex" />
+                              <Pane HBox.hgrow="ALWAYS" />
+                              <SplitMenuButton fx:id="copyRgx_smBtn" contentDisplay="GRAPHIC_ONLY" mnemonicParsing="false" onAction="#copyRgx" prefHeight="20.0" prefWidth="14.0" HBox.hgrow="NEVER">
+                                <items>
+                                  <MenuItem fx:id="copyRgxAsString_smBtn" mnemonicParsing="false" onAction="#copyRgxAsString" text="as string" />
+                                </items>
+                                 <graphic>
+                                    <ImageView fitHeight="18.0" fitWidth="132.0" pickOnBounds="true" preserveRatio="true">
+                                       <image>
+                                          <Image url="@../icons/copy.png" />
+                                       </image>
+                                    </ImageView>
+                                 </graphic>
+                                 <tooltip>
+                                    <Tooltip text="Copy regex" />
+                                 </tooltip>
+                              </SplitMenuButton>
+                           </children>
+                        </HBox>
+                        <Label text="Input Text">
+                           <VBox.margin>
+                              <Insets top="5.0" />
+                           </VBox.margin>
+                        </Label>
+                     </children>
+                     <padding>
+                        <Insets bottom="5.0" left="10.0" right="10.0" top="10.0" />
+                     </padding>
+                  </VBox>
+                  <SplitPane prefHeight="160.0" prefWidth="200.0">
+                    <items>
+                        <VBox fx:id="replacement_box" prefHeight="200.0" prefWidth="100.0" spacing="10.0">
+                           <children>
+                              <HBox fx:id="replaceControl_box" nodeOrientation="LEFT_TO_RIGHT" prefWidth="200.0" spacing="5.0">
+                                 <children>
+                                    <TextArea fx:id="replaceText_area" maxHeight="-Infinity" minHeight="-Infinity" prefHeight="25.0" prefWidth="200.0" promptText="Replacement" HBox.hgrow="ALWAYS">
+                                       <tooltip>
+                                          <Tooltip text="Enter replacement text" />
+                                       </tooltip></TextArea>
+                                    <Button fx:id="replace_btn" mnemonicParsing="false" onAction="#onReplaceClick" text="Replace">
+                                       <graphic>
+                                          <ImageView fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true">
+                                             <image>
+                                                <Image url="@../icons/replace.png" />
+                                             </image>
+                                          </ImageView>
+                                       </graphic>
+                                       <tooltip>
+                                          <Tooltip text=" Replace matches with replacemet" />
+                                       </tooltip></Button>
+                                 </children>
+                              </HBox>
+                           </children>
+                           <padding>
+                              <Insets bottom="5.0" left="10.0" right="10.0" top="10.0" />
+                           </padding>
+                        </VBox>
+                    </items>
+                  </SplitPane>
+               </items>
+            </SplitPane>
+            <SplitPane dividerPositions="0.6258823529411764" orientation="VERTICAL" prefHeight="200.0" prefWidth="160.0">
+              <items>
+                  <TableView fx:id="match_table" prefHeight="467.0" prefWidth="152.0" SplitPane.resizableWithParent="false">
+                    <columns>
+                        <TableColumn fx:id="no_col" editable="false" maxWidth="1.7976931348623157E308" minWidth="40.0" prefWidth="40.0" sortable="false" style="-fx-alignment: CENTER;" text="No." />
+                      <TableColumn fx:id="index_col" editable="false" maxWidth="1.7976931348623157E308" minWidth="70.0" prefWidth="70.0" sortable="false" style="-fx-alignment: CENTER;" text="index" />
+                      <TableColumn fx:id="match_col" editable="false" maxWidth="1.7976931348623157E308" minWidth="100.0" prefWidth="100.0" sortable="false" style="-fx-alignment: CENTER;" text="Match" />
+                    </columns>
+                     <columnResizePolicy>
+                        <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                     </columnResizePolicy>
+                  </TableView>
+                  <VBox prefHeight="200.0" prefWidth="100.0">
+                     <children>
+                        <ToolBar prefWidth="241.0">
+                           <items>
+                              <Button fx:id="splitBtn" mnemonicParsing="false" onAction="#onSplitClick" text="Split">
+                                 <graphic>
+                                    <ImageView fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true">
+                                       <image>
+                                          <Image url="@../icons/split.png" />
+                                       </image>
+                                    </ImageView>
+                                 </graphic>
+                                 <tooltip>
+                                    <Tooltip text=" split the given text by matches" />
+                                 </tooltip></Button>
+                              <TextField fx:id="limit_fld" prefHeight="25.0" prefWidth="57.0" promptText="limit">
+                                 <tooltip>
+                                    <Tooltip text="limit to split " />
+                                 </tooltip></TextField>
+                              <Separator orientation="VERTICAL" />
+                              <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Length : " />
+                              <Text fx:id="sLength_txt" strokeType="OUTSIDE" strokeWidth="0.0" text="0" />
+                           </items>
+                           <padding>
+                              <Insets bottom="5.0" left="10.0" right="5.0" top="5.0" />
+                           </padding>
+                        </ToolBar>
+                        <ListView fx:id="split_LV" focusTraversable="false" prefHeight="200.0" prefWidth="200.0" VBox.vgrow="ALWAYS">
+                           <VBox.margin>
+                              <Insets />
+                           </VBox.margin>
+                           <padding>
+                              <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                           </padding>
+                        </ListView>
+                     </children>
+                  </VBox>
+              </items>
+            </SplitPane>
+         </items>
+      </SplitPane>
+   </center>
+   <top>
+      <ToolBar prefHeight="30.0" prefWidth="600.0" BorderPane.alignment="CENTER">
+         <items>
+            <Button fx:id="match_btn" mnemonicParsing="false" onAction="#onMatchClick" text="Match">
+               <tooltip>
+                  <Tooltip text="Find matches" />
+               </tooltip>
+               <graphic>
+                  <ImageView fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@../icons/find.png" />
+                     </image>
+                  </ImageView>
+               </graphic></Button>
+            <MenuButton contentDisplay="GRAPHIC_ONLY" mnemonicParsing="false" text="Configs">
+              <items>
+                  <CheckMenuItem fx:id="auMatch_CMI" mnemonicParsing="false" selected="true" text="Match automatically  while typing" />
+                  <CheckMenuItem fx:id="auSplit_CMI" mnemonicParsing="false" text="Split automatically while typing" />
+                  <CheckMenuItem fx:id="auReplacement_CMI" mnemonicParsing="false" text="Replace automatically while typing" />
+                  <SeparatorMenuItem mnemonicParsing="false" />
+                  <CheckMenuItem fx:id="renderIC_CMI" mnemonicParsing="false" text="Render Invisible Characters" />
+              </items>
+               <tooltip>
+                  <Tooltip text="Configurations" />
+               </tooltip>
+               <graphic>
+                  <ImageView fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@../icons/settings.png" />
+                     </image>
+                  </ImageView>
+               </graphic>
+            </MenuButton>
+            <Separator layoutX="344.0" layoutY="10.0" orientation="VERTICAL" />
+            <MenuButton fx:id="flags_mBtn" contentDisplay="GRAPHIC_ONLY" mnemonicParsing="false" text="Flags">
+               <tooltip>
+                  <Tooltip text="Regex modifier flags" />
+               </tooltip>
+               <graphic>
+                  <ImageView fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@../icons/flag.png" />
+                     </image>
+                  </ImageView>
+               </graphic></MenuButton>
+            <Separator layoutX="178.0" layoutY="10.0" orientation="VERTICAL" />
+            <Label fx:id="status_lbl" alignment="CENTER" minHeight="-Infinity" minWidth="-Infinity" prefHeight="20.0" style="-fx-background-color: #3c3c3c; -fx-background-radius: 15;" text="no match" textAlignment="CENTER" textFill="#e4e4e4">
+               <padding>
+                  <Insets bottom="2.0" left="13.0" right="13.0" />
+               </padding>
+            </Label>
+            <Label fx:id="msg_lbl" prefHeight="18.0">
+               <padding>
+                  <Insets left="2.0" right="2.0" />
+               </padding>
+            </Label>
+            <Pane HBox.hgrow="ALWAYS" />
+            <Button fx:id="about_btn" contentDisplay="GRAPHIC_ONLY" mnemonicParsing="false" onAction="#showAboutWindow" prefHeight="25.0" style="-fx-background-radius: 15;" text="About">
+               <graphic>
+                  <ImageView fitHeight="20.0" fitWidth="20.0" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@../icons/app-32.png" />
+                     </image>
+                  </ImageView>
+               </graphic>
+               <tooltip>
+                  <Tooltip text="About RegexAssist" />
+               </tooltip>
+            </Button>
+         </items>
+         <BorderPane.margin>
+            <Insets />
+         </BorderPane.margin>
+         <padding>
+            <Insets bottom="5.0" left="10.0" right="5.0" top="5.0" />
+         </padding>
+      </ToolBar>
+   </top>
+</BorderPane>
