@@ -27,10 +27,13 @@ package org.codefh.regexassist;
 import org.codefh.regexassist.util.IndexRange;
 import java.io.IOException;
 import java.net.URL;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.Optional;
 import java.util.ResourceBundle;
-import java.util.function.UnaryOperator;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
@@ -45,11 +48,12 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
-import javafx.scene.control.TextFormatter;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.collections.FXCollections;
+import javafx.concurrent.Task;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
@@ -60,17 +64,22 @@ import javafx.stage.Stage;
 import org.codefh.regexassist.util.Utility;
 import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
+import org.reactfx.Subscription;
 
 /**
  * Controller class for RegexAssist
  */
 public class RegexAssistController implements Initializable {
 
+    private ExecutorService executor = Executors.newSingleThreadExecutor();
+    private PatternSyntaxException patternError=null;
+    private Subscription matchWhenDone = null;
+    
     private ArrayList<IndexRange> matches = new ArrayList<>();
     private ObservableList<CheckMenuItem> flags = FXCollections.observableArrayList();
 
-    private Text regexFldHolder = new Text(), // using 'Text' as a reference to make grow 'Codearea'(regexFld)
-                replaceTextHolder = new Text(); // using 'Text' as a reference to make grow 'TextArea'(replaceText_area)   
+    private Text regexFldHolder = new Text(), // using 'Text' as a reference to make 'Codearea'(regexFld) grow as we type
+                replaceTextHolder = new Text(); // using 'Text' as a reference to make 'TextArea'(replaceText_area) grow as we type
 
     private VirtualizedScrollPane regex_VScroll, in_VScroll, replacement_VScroll;
     private CodeArea regex_area = new CodeArea(),
@@ -103,39 +112,38 @@ public class RegexAssistController implements Initializable {
         regex_VScroll = new VirtualizedScrollPane(regex_area);
         in_VScroll = new VirtualizedScrollPane(input_area);
         replacement_VScroll = new VirtualizedScrollPane(replacement_area);
-        replacement_area.setEditable(false);
-        input_area.setOnKeyTyped(e -> onTyped());
-        regex_area.setOnKeyTyped(e -> onTyped());
-
+        
+        regex_VScroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+                 
+        VBox.setVgrow(regex_VScroll, Priority.ALWAYS);
         VBox.setVgrow(in_VScroll, Priority.ALWAYS);
         VBox.setVgrow(replacement_VScroll, Priority.ALWAYS);
+        
+        // regex_VScroll use same height as regex_area
+        regex_VScroll.prefHeightProperty().bind(regex_area.prefHeightProperty());
+        regex_VScroll.setMinHeight(Region.USE_PREF_SIZE);
+        regex_VScroll.setMaxHeight(Region.USE_PREF_SIZE);
+        
+        // replacement area was not editable
+        replacement_area.setEditable(false);
 
         // height is set to 25 (i.e) 1 row
         regex_area.setPrefHeight(25);
         regex_area.setMinHeight(Region.USE_PREF_SIZE);
         regex_area.setMaxHeight(Region.USE_PREF_SIZE);
-
     }
 
     @Override
     public void initialize(URL location, ResourceBundle resource) {
-
+        
         makeAutoGrowable();
-
+        
         input_box.getChildren().add(1, regex_VScroll);
         input_box.getChildren().add(in_VScroll);
         replacement_box.getChildren().add(replacement_VScroll);
-
+        
         // make split-limit's Textfield (limitFld) to acccept only integers
-        limit_fld.setTextFormatter(new TextFormatter<>(new UnaryOperator<TextFormatter.Change>() {
-            @Override
-            public TextFormatter.Change apply(TextFormatter.Change c) {
-                if (c.getControlNewText().matches("[\\d]*"))
-                    return c;
-                else
-                    return null;
-            }
-        }));
+        Utility.makeAcceptOnlyIntegers(limit_fld);
 
         // adding observableList(flags) to menuButton(flagsMenuBtn)
         flags_mBtn.getItems().addAll(flags);
@@ -144,24 +152,27 @@ public class RegexAssistController implements Initializable {
         auSplit_CMI.selectedProperty().set(Configs.autoSplit);
         auReplacement_CMI.selectedProperty().set(Configs.autoReplace);
         renderIC_CMI.selectedProperty().set(Configs.renderInvisibleChars);
-
-        // autoupdateMatch checkeMenuItem should be selected to select autoupdateSplit & replacement
+        
+        // autoupdateMatch checkeMenuItem should be selected to select autoupdateSplit, replacement and use matchDelay
         auMatch_CMI.selectedProperty().addListener((observable, oldValue, newValue) -> {
             Configs.autoMatch = newValue;
-            if (newValue == false) {
+            setAutoMatch(newValue);
+            if (newValue == true) {                
+                auSplit_CMI.setDisable(false);
+                auReplacement_CMI.setDisable(false);
+            } else {
                 auSplit_CMI.setSelected(false);
                 auReplacement_CMI.setSelected(false);
                 auSplit_CMI.setDisable(true);
                 auReplacement_CMI.setDisable(true);
-            } else {
-                auSplit_CMI.setDisable(false);
-                auReplacement_CMI.setDisable(false);
             }
         });
         auSplit_CMI.selectedProperty().addListener((ov, oldval, newval) -> Configs.autoSplit = newval);
         auReplacement_CMI.selectedProperty().addListener((ov, oldval, newval) -> Configs.autoReplace = newval);
         renderIC_CMI.selectedProperty().addListener((ov, oldval, newval) -> Configs.renderInvisibleChars = newval);
-
+        
+        setAutoMatch(Configs.autoMatch);
+        
         // for showing matches in table
         no_col.setCellValueFactory(new PropertyValueFactory<MatchInformation, Integer>("matchNumber"));
         index_col.setCellValueFactory(new PropertyValueFactory<MatchInformation, String>("indexRange"));
@@ -177,8 +188,39 @@ public class RegexAssistController implements Initializable {
         regex_area.requestFocus();
     }
     
+    // subscribe input_area and text_area to make automatch while typing
+    public void setAutoMatch(boolean value){
+        // if true, subscribe for auto match
+        if(value) { 
+            matchWhenDone = input_area.multiPlainChanges()
+                .successionEnds(Duration.ofMillis(Configs.matchDelay))  // using delay time in configuration
+                .supplyTask(this::matchAsync)
+                .awaitLatest(input_area.multiPlainChanges())
+                .filterMap(t -> {
+                    if(t.isSuccess())
+                        return Optional.of(t.get());
+                    else 
+                        return Optional.empty();
+                })
+                .subscribe(this::updateResult)
+                .and(regex_area.multiPlainChanges()
+                .successionEnds(Duration.ofMillis(Configs.matchDelay))
+                .supplyTask(this::matchAsync)
+                .awaitLatest(input_area.multiPlainChanges())
+                .filterMap(t -> {
+                    if(t.isSuccess())
+                        return Optional.of(t.get());
+                    else 
+                        return Optional.empty();
+                })
+                .subscribe(this::updateResult));
+        } else if(matchWhenDone != null) {
+            matchWhenDone.unsubscribe();
+        }
+    }
+    
     // to make textarea grow as we number of lines increase
-    // with maximum limit 4
+    // with maximum limit is in the Congfigs
     public void makeAutoGrowable() {
 
         // binding TextAreas textProperty with TextHolders 
@@ -234,6 +276,95 @@ public class RegexAssistController implements Initializable {
             }
         }
         return -1;
+    }
+
+    public Task<ArrayList<IndexRange>> matchAsync(){
+        Task<ArrayList<IndexRange>> task = new Task<>() {
+            @Override
+            protected ArrayList<IndexRange> call() throws Exception {
+                return doMatch();
+            }
+        };
+        executor.execute(task);
+        return task;
+    }
+    
+    // performs match on the input string by regex and return the ArrayList of IndexRange representing matches.
+    public ArrayList<IndexRange> doMatch() {
+        ArrayList<IndexRange> matches= new ArrayList<>();
+        String regex = regex_area.getText(),
+                toMatch = input_area.getText();
+        patternError = null;
+        // if regex is empty return empty arrayList
+        if(!regex.isEmpty()) {
+            try {
+                Matcher matcher = Pattern.compile(regex, Configs.flagInt).matcher(toMatch);
+                while (matcher.find())
+                    matches.add(new IndexRange(matcher.start(), matcher.end()));
+
+            } catch (PatternSyntaxException pse) {
+                patternError=pse;
+            }
+        }
+        // it return empty ArrayList if error is caused or no match is found or regex is empty
+        // updateMatch method checks error caused or not by checking patterError variable is null or not
+        return matches;
+    }
+    
+    // update Match results in 'matches' variable and also update status
+    // if error caused(findout by checking pattern error is null or not) call handlePatternError method
+    public void updateMatch(ArrayList<IndexRange> matches){
+        this.matches = matches;
+        // null value is not allowed in 'Optional'(used reacfx's supcription) so, we check patterError for null to find error is caused or not
+        if(patternError!=null) {
+            handlPatternError(patternError);
+        } else {
+            int n=matches.size();
+            updateStatus((n==0)?"no match": (n==1)?"1 match" : n+" matches", null);
+        }
+    }
+    
+    // update the UI by highlighting and showing matches (and also perform replacing and splitting if option enabled)
+    // this method is used for performing match while typing
+    public void updateResult(ArrayList<IndexRange> matches) {
+         updateMatch(matches);
+         // update UI if there is no error
+         if (patternError == null) {
+                highlightMatch();
+                showMatch();
+                if (Configs.autoSplit)
+                    showSplit();
+                if (Configs.autoReplace)
+                    showReplacement();
+            }
+    }
+    
+    // show message about error and highlight the error
+    public void handlPatternError(PatternSyntaxException pse) {
+        String msg = pse.getDescription();
+        int idx = pse.getIndex()-1; // index optained by PatternSyntaxException is 1 based. so, we converte it into 0 based
+        
+        if (msg.startsWith("Unclosed group")) {
+            String regex = regex_area.getText();
+            if (regex.charAt(idx) != '(') {
+                idx = regex.lastIndexOf("(", idx);
+            }
+        } else if (msg.startsWith("Unclosed character class")) {
+            idx += 1;
+            String regex = regex_area.getText();
+            if (regex.charAt(idx) != '[') {
+                idx = regex.lastIndexOf("[", idx);
+            }
+        } else if (msg.startsWith("Dangling meta character")) {
+            idx += 1;
+        } else if (msg.startsWith("Unmatched closing") || msg.startsWith("Illegal repetition")) {
+            idx += 2;
+        }
+
+        updateStatus("Pattern Error", msg + " at index " + (idx + 1));
+        // clearing old error highlighting and updating new error highlighing 
+        regex_area.clearStyle(0, regex_area.getLength());
+        regex_area.setStyleClass(idx, idx + 1, "error");
     }
 
     // displays the match in table (match_table)
@@ -294,74 +425,26 @@ public class RegexAssistController implements Initializable {
         if (idx < text.length())
             replacement_area.append(text.substring(idx), "none");
     }
-
-    // performs match on the input string by regex and stores the match index in variable 'matches'
-    public void doMatch() {
-        this.matches.clear();
-        String regex = regex_area.getText(),
-                toMatch = input_area.getText();
-        // if regex is empty it does not perform match and update 'no match' in status
-        if (regex.isEmpty()) {
-            updateStatus("no match", null);
-            return;
-        }
-        Matcher matcher = null;
-        // if error occurs it was handeld by 'handlePatternError' method 
-        try {
-            matcher = Pattern.compile(regex, Configs.flagInt).matcher(toMatch);
-        } catch (PatternSyntaxException pse) {
-            handlPatternError(pse.getDescription(), pse.getIndex());
-            return;
-        }
-        while (matcher.find())
-            matches.add(new IndexRange(matcher.start(), matcher.end()));
-     
-        int n = matches.size();
-        // update match status
-        updateStatus(((n == 0) ? "no match" : (n == 1) ? "1 match" : n + " matches"), null);
-    }
-
+    
     // highlights the matched string
     public void highlightMatch() {
+        regex_area.clearStyle(0, regex_area.getLength());
+        input_area.clearStyle(0, input_area.getLength());
         matches.forEach((ir) -> input_area.setStyleClass(ir.getStart(), ir.getEnd(), "match"));
     }
 
-    // show message about error and highlight the error
-    public void handlPatternError(String msg, int idx) {
-        idx -= 1;
-        if (msg.startsWith("Unclosed group")) {
-            String regex = regex_area.getText();
-            if (regex.charAt(idx) != '(') {
-                idx = regex.lastIndexOf("(", idx);
-            }
-        } else if (msg.startsWith("Unclosed character class")) {
-            idx += 1;
-            String regex = regex_area.getText();
-            if (regex.charAt(idx) != '[') {
-                idx = regex.lastIndexOf("[", idx);
-            }
-        } else if (msg.startsWith("Dangling meta character")) {
-            idx += 1;
-        } else if (msg.startsWith("Unmatched closing") || msg.startsWith("Illegal repetition")) {
-            idx += 2;
-        }
-
-        updateStatus("Pattern Error", msg + " at index " + (idx + 1));
-        regex_area.setStyleClass(idx, idx + 1, "error");
-    }
-
     /*
-    * update status with message
-    * if status is null, retain old status (used to update message only)
-    * if msg is null, set empty message
-    */
+     * update status with message
+     * if 'status' is null, retain old status (used to update message only)
+     * if 'msg' is null, set empty message
+     */
     public void updateStatus(String status, String msg) {
         if (status != null) {
             status_lbl.setText(status);
         }
         msg_lbl.setText((msg == null) ? "" :msg);
     }
-
+    
     // update flagInt with flag code by performing bitwise operation in selected flags
     // this method is called every time when the flag selection is changed
     private void computeFlags() {
@@ -372,28 +455,11 @@ public class RegexAssistController implements Initializable {
             }
         });
     }
-    
-    @FXML
-    public void onTyped() {
-        regex_area.clearStyle(0, regex_area.getLength());
-        input_area.clearStyle(0, input_area.getLength());
-        if (Configs.autoMatch) {
-            doMatch();
-            if (matches != null) {
-                highlightMatch();
-                showMatch();
-                if (Configs.autoSplit)
-                    showSplit();
-                if (Configs.autoReplace)
-                    showReplacement();
-            }
-        }
-    }
 
     @FXML
     public void onMatchClick() {
-        doMatch();
-        if (matches != null) {
+        updateMatch(doMatch());
+        if (patternError == null) {
             highlightMatch();
             showMatch();
         }
@@ -401,15 +467,15 @@ public class RegexAssistController implements Initializable {
 
     @FXML
     public void onSplitClick() {
-        doMatch();
-        if (matches != null)
+        updateMatch(doMatch());
+        if (patternError == null)
             showSplit();
     }
 
     @FXML
     public void onReplaceClick() {
-        doMatch();
-        if (matches != null)
+        updateMatch(doMatch());
+        if (patternError == null)
             showReplacement();
     }
 

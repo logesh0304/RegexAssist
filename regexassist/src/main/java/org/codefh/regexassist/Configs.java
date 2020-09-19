@@ -34,10 +34,12 @@ public class Configs
 {   
     public static final Map<String,Integer> flagsNvalue=new TreeMap<>();
     public static boolean renderInvisibleChars=true;
-    public static int rgxAreaMaxRow=4, replaceTextMaxRow=4;
+    public static int rgxAreaMaxRow=7; 
+    public static int replaceTextMaxRow=7;
     public static boolean autoMatch=true,
             autoSplit=false,
             autoReplace=false;
+    public static long matchDelay=100;
     public static int flagInt=0;
 
     static {
