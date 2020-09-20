@@ -40,8 +40,11 @@
     -rtfx-background-color: #49ea3d;
 }
 
-.text-area{
+#replace-text-area{
     -fx-font-family:"Roboto Mono";
+}
+#replace-text-area .scroll-pane{
+    -fx-hbar-policy:never;
 }
 
 .table-view .table-cell{
@@ -59,8 +62,7 @@
     -fx-font-size:12;
     -fx-padding: 4 7 4 7;
     
-    -fx-background-color: linear-gradient(to bottom, derive(-fx-text-box-border, -10%), -fx-text-box-border),
-        linear-gradient(from 0px 0px to 0px 5px, derive(-fx-control-inner-background, -9%), -fx-control-inner-background);
+    -fx-background-color: linear-gradient(to bottom, derive(-fx-text-box-border, -10%), -fx-text-box-border),         linear-gradient(from 0px 0px to 0px 5px, derive(-fx-control-inner-background, -9%), -fx-control-inner-background);
     -fx-background-insets: 0, 1;
     -fx-background-radius: 3, 2;
 }

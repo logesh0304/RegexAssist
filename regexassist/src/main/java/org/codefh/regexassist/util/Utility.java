@@ -24,8 +24,14 @@
 
 package org.codefh.regexassist.util;
 
+import java.util.function.UnaryOperator;
+import javafx.scene.Node;
+import javafx.scene.control.TextFormatter;
+import javafx.scene.control.TextInputControl;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 
 /**
  * This class contains utility functions to be used
@@ -65,5 +71,19 @@ public class Utility
         return string.replaceAll("(\r\n|\n|\r)", "\u21b5$1").replace(' ', '\u00b7').replace('\t', '\u27f6');
     }
     
-    
+    /**
+     * Make TextBox or Node that inherit TextInputControl to accept only Integers.
+     * @param textNode subclass of TextInputControl to make accept only Integers
+     */
+    public static void makeAcceptOnlyIntegers(TextInputControl textNode){
+        textNode.setTextFormatter(new TextFormatter<>(new UnaryOperator<TextFormatter.Change>() {
+            @Override
+            public TextFormatter.Change apply(TextFormatter.Change c) {
+                if (c.getControlNewText().matches("[\\d]*"))
+                    return c;
+                else
+                    return null;
+            }
+        }));
+    }
 }

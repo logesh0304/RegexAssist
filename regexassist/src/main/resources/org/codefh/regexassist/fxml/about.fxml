@@ -52,7 +52,7 @@
         </rowConstraints>
          <children>
             <Text lineSpacing="5.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Version : " />
-            <Text fx:id="versionTxt" strokeType="OUTSIDE" strokeWidth="0.0" text="1.0.0-SNAPSHOT" GridPane.columnIndex="1" />
+            <Text fx:id="versionTxt" strokeType="OUTSIDE" strokeWidth="0.0" text="1.0.0" GridPane.columnIndex="1" />
             <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Minimum JRE version :" GridPane.rowIndex="1" />
             <Text fx:id="jreVersionTxt" layoutX="212.0" layoutY="30.0" strokeType="OUTSIDE" strokeWidth="0.0" text="11" GridPane.columnIndex="1" GridPane.rowIndex="1" />
          </children>
