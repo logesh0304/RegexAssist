@@ -10,16 +10,23 @@ A simple application to test your regex.
 - Text highlighting for  match, error and replacements.
 - You can copy regex **as string** and paste directly into your program
 
-# Requirements
+## Screenshots
+![match_replacement_split](https://github.com/logesh0304/RegexAssist/blob/master/screenshots/match_replacement_split.jpg)  
+![match_error](https://github.com/logesh0304/RegexAssist/blob/master/screenshots/match_error.jpg)  
+![date_matching](https://github.com/logesh0304/RegexAssist/blob/master/screenshots/date_matching.jpg)
+![flags_menu](https://github.com/logesh0304/RegexAssist/blob/master/screenshots/flags_menu.png)  
+
+## Requirements
 It only works on **Java 11+** .    
 The proper JDK or JRE should be installed in your system to run this application.
 
-# Download and Usage
-You can download the latest version of this sofware ***here***.  
+## Download and Usage  
+This software is availabe as an executable jar for **Windows, Linux and Mac**  
+You can download the latest version of this sofware [here](https://github.com/logesh0304/RegexAssist/releases/tag/v1.0.0-SNAPSHOT).  
 
 To run the application just double-click the downloaded jar.  
 *It runs only when the JDK is installed correctly.*
 
-# License
+## License
 This software is licensed under MIT License
 
