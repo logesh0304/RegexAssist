@@ -71,10 +71,12 @@ import org.reactfx.Subscription;
  */
 public class RegexAssistController implements Initializable {
 
+    private int rgxCurrRowCount = 1, replaceCurrRowCount = 1;
+    
     private ExecutorService executor = Executors.newSingleThreadExecutor();
     private PatternSyntaxException patternError=null;
     private Subscription matchWhenDone = null;
-    
+   
     private ArrayList<IndexRange> matches = new ArrayList<>();
     private ObservableList<CheckMenuItem> flags = FXCollections.observableArrayList();
 
@@ -232,17 +234,27 @@ public class RegexAssistController implements Initializable {
             if (n.getHeight() != o.getHeight()) {
                 int holderRowCount = computeRowCount(n.getHeight());
                 if (holderRowCount != -1 && holderRowCount < Configs.rgxAreaMaxRow + 1) {
+                    rgxCurrRowCount = holderRowCount;
                     regex_area.setPrefHeight((17*holderRowCount)+8); // 8 was added as padding height
+                }
+                // If holderRowCount is max(-1 or >max_row_count in configs) and current_row_count is not maxRow, height is set to maxRow
+                // This situation occurs when pasting a text with lines > max_row_count 
+                else if (rgxCurrRowCount != Configs.rgxAreaMaxRow) { 
+                    regex_area.setPrefHeight((17*Configs.rgxAreaMaxRow)+8);
                 }
             }
         });
 
         // making replaceText_area grow as we type
+        // this was same as regex_area
         replaceTextHolder.layoutBoundsProperty().addListener((ov, o, n) -> {
             if (n.getHeight() != o.getHeight()) {
                 int holderRowCount = computeRowCount(n.getHeight());
                 if (holderRowCount != -1 && holderRowCount < Configs.replaceTextMaxRow + 1) {
-                    replaceText_area.setPrefHeight((17*holderRowCount)+8); // 8 was added as paddiing height
+                    replaceCurrRowCount = holderRowCount;
+                    replaceText_area.setPrefHeight((17*holderRowCount)+8);
+                } else if (replaceCurrRowCount != Configs.rgxAreaMaxRow) {
+                    replaceText_area.setPrefHeight((17*Configs.replaceTextMaxRow)+8);
                 }
             }
         });
@@ -278,6 +290,7 @@ public class RegexAssistController implements Initializable {
         return -1;
     }
 
+    // perform match in a new thread and return the task
     public Task<ArrayList<IndexRange>> matchAsync(){
         Task<ArrayList<IndexRange>> task = new Task<>() {
             @Override
@@ -342,8 +355,9 @@ public class RegexAssistController implements Initializable {
     // show message about error and highlight the error
     public void handlPatternError(PatternSyntaxException pse) {
         String msg = pse.getDescription();
-        int idx = pse.getIndex()-1; // index optained by PatternSyntaxException is 1 based. so, we converte it into 0 based
+        int idx = pse.getIndex()-1; // index optained by PatternSyntaxException is 1 based. so, we convert it into 0 based
         
+        // the index given by PatternSyntaxException is not accurate. So, we should resolve it based on error type
         if (msg.startsWith("Unclosed group")) {
             String regex = regex_area.getText();
             if (regex.charAt(idx) != '(') {
@@ -361,7 +375,8 @@ public class RegexAssistController implements Initializable {
             idx += 2;
         }
 
-        updateStatus("Pattern Error", msg + " at index " + (idx + 1));
+        updateStatus("Pattern Error", msg + " at position " + (idx + 1));
+        
         // clearing old error highlighting and updating new error highlighing 
         regex_area.clearStyle(0, regex_area.getLength());
         regex_area.setStyleClass(idx, idx + 1, "error");
