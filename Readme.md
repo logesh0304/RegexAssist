@@ -8,7 +8,7 @@ A simple application to test your regex.
 - Support text **replacing** and **spliting**.
 - Displays error messages.
 - Text highlighting for  match, error and replacements.
-- You can copy regex **as string** and paste directly into your program
+- And much more ...
 
 ## Screenshots
 
@@ -39,7 +39,7 @@ You can download the latest version of this sofware [here](https://github.com/lo
 To run the application just double-click the downloaded jar.  
 *It runs only when the JDK is installed correctly.*
 
-## Contibution
+## Contribution
 Any contributors are **Welcome**
 
 ## License
