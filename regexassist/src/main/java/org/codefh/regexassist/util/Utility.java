@@ -25,13 +25,10 @@
 package org.codefh.regexassist.util;
 
 import java.util.function.UnaryOperator;
-import javafx.scene.Node;
 import javafx.scene.control.TextFormatter;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
 
 /**
  * This class contains utility functions to be used
