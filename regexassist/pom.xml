@@ -31,8 +31,8 @@
         </dependency>
         
         <!--
-        for building platform independent jar
-        exclude other platforms for testing or running the applicaion
+        This is for building platform independent jar.
+        Exclude other platforms for testing or running the applicaion
         -->
         <dependency>
             <groupId>org.openjfx</groupId>
