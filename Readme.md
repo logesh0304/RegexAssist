@@ -35,14 +35,14 @@ It only works on **Java 11+** .
 The proper JDK or JRE should be installed in your system to run this application.
 
 ## Download and Usage  
-This software is availabe as an executable jar for **Windows, Linux and Mac**  
-You can download the latest version of this sofware [here](https://github.com/logesh0304/RegexAssist/releases/tag/v1.0.0-SNAPSHOT).  
+This software is availabe as an **platform independent executable jar** for **Windows, Linux and Mac**  
+You can download the latest version of this sofware [here](https://github.com/logesh0304/RegexAssist/releases/latest).  
 
 To run the application just double-click the downloaded jar.  
 *It runs only when the JDK is installed correctly.*
 
 ## Contribution
-Any contributors are **Welcome**
+Any contributors are **Welcome** :smiley:
 
 ## License
 This software is licensed under MIT License
