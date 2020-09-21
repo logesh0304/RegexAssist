@@ -8,7 +8,9 @@ A simple application to test your regex.
 - Support text **replacing** and **spliting**.
 - Displays error messages.
 - Text highlighting for  match, error and replacements.
-- And much more ...
+- And much more ...  
+
+>Note: This supports java regex only, since it uses **java regex api**.  
 
 ## Screenshots
 
