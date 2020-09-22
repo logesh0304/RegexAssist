@@ -1,4 +1,5 @@
 # RegexAssist
+<img src="Icon.png" width="100" height="100">
 
 A simple application to test your regex.
 
